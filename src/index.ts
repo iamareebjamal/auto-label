@@ -1,13 +1,34 @@
-import { Application } from 'probot' // eslint-disable-line no-unused-vars
+import { Application, Context } from 'probot' // eslint-disable-line no-unused-vars
+
+const prefixList = ['fix', 'chore']
+
+const labelMap: { [key:string]:string[] } = {
+  'feat': ['feature'],
+  'fix(ui)': ['fix', 'ui']
+}
 
 export = (app: Application) => {
-  app.on('issues.opened', async (context) => {
-    const issueComment = context.issue({ body: 'Thanks for opening this issue!' })
-    await context.github.issues.createComment(issueComment)
-  })
-  // For more information on building apps:
-  // https://probot.github.io/docs/
+  app.on(['pull_request.opened', 'pull_request.edited'], async (context: Context) => {
+    const pr = context.payload.pull_request
 
-  // To get your app running against GitHub, see:
-  // https://probot.github.io/docs/development/
+    if (pr.state !== 'open') {
+      console.debug('PR is not open. Hence, ignoring the changes')
+      return
+    }
+
+    const labels = []
+    for (let label of prefixList) {
+      if (pr.title.startsWith(`${label}:`))
+        labels.push(label)
+    }
+
+    for (let key of Object.keys(labelMap)) {
+      if (pr.title.startsWith(key))
+        labels.push.apply(labels, labelMap[key])
+    }
+
+    await context.github.issues.addLabels(context.issue({
+      labels
+    }))
+  })
 }

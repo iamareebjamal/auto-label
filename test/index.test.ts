@@ -1,52 +1,122 @@
-// You can import your modules
-// import index from '../src/index'
+import utils from '../src/utils'
 
-import nock from 'nock'
-// Requiring our app implementation
-import myProbotApp from '../src'
-import { Probot } from 'probot'
-// Requiring our fixtures
-import payload from './fixtures/issues.opened.json'
-const issueCreatedBody = { body: 'Thanks for opening this issue!' }
-
-nock.disableNetConnect()
-
-describe('My Probot app', () => {
-  let probot: any
-
-  beforeEach(() => {
-    probot = new Probot({ id: 123, cert: 'test' })
-    // Load our app into probot
-    const app = probot.load(myProbotApp)
-
-    // just return a test token
-    app.app = () => 'test'
+describe('Extract Utils Tests', () => {
+  test('test label extraction from list', async (done) => {
+    done(expect(utils.extractLabels('chore: Update README')).toEqual(['chore']))
+    done(expect(utils.extractLabels('fix: Extract labels correctly')).toEqual(['fix']))
   })
 
-  test('creates a comment when an issue is opened', async (done) => {
-    // Test that we correctly return a test token
-    nock('https://api.github.com')
-      .post('/app/installations/2/access_tokens')
-      .reply(200, { token: 'test' })
+  test('test label extraction from map', async (done) => {
+    done(expect(utils.extractLabels('feat: Add links support')).toEqual(['feature']))
+    done(expect(utils.extractLabels('fix(ui): Render buttons correctly')).toEqual(['fix', 'ui']))
+  })
 
-    // Test that a comment is posted
-    nock('https://api.github.com')
-      .post('/repos/hiimbex/testing-things/issues/1/comments', (body: any) => {
-        done(expect(body).toMatchObject(issueCreatedBody))
-        return true
-      })
-      .reply(200)
-
-    // Receive a webhook event
-    await probot.receive({ name: 'issues', payload })
+  test('test current label extraction', async (done) => {
+    const labels = [{ name: 'fix' }, { name: 'ui' }]
+    done(expect(utils.extractCurrentLabels(labels)).toEqual(['fix', 'ui']))
   })
 })
 
-// For more information about testing with Jest see:
-// https://facebook.github.io/jest/
+describe('Set Operation Tests', () => {
+  test('calculate resultant labels', async (done) => {
+    const newLabels = ['feat']
+    const currentLabels = ['fix', 'ui', 'approved']
+    const oldLabels = ['fix', 'ui']
 
-// For more information about using TypeScript in your tests, Jest recommends:
-// https://github.com/kulshekhar/ts-jest
+    done(expect(utils.calculateResultantLabels(newLabels, currentLabels, oldLabels)).toEqual(['feat', 'approved']))
+  })
 
-// For more information about testing with Nock see:
-// https://github.com/nock/nock
+  test('calculate resultant labels 2', async (done) => {
+    const newLabels = ['fix']
+    const currentLabels = ['fix', 'ui', 'approved']
+    const oldLabels = ['fix', 'ui']
+
+    done(expect(utils.calculateResultantLabels(newLabels, currentLabels, oldLabels)).toEqual(['fix', 'approved']))
+  })
+
+  test('test resultant labels on PR', async (done) => {
+    const pullRequest = {
+      pull_request: {
+        title: 'fix: Handle mixed intent type',
+        labels: [{ name: 'fix' }, { name: 'ui' }, { name: 'approved' }]
+      },
+      changes: {
+        title: {
+          from: 'fix(ui): Make text larger'
+        }
+      }
+    }
+
+    done(expect(utils.extractLabelsFromPR(pullRequest)).toEqual(['fix', 'approved']))
+  })
+
+  test('test resultant labels on PR 2', async (done) => {
+    const pullRequest = {
+      pull_request: {
+        title: 'fix(ui): Handle mixed intent type',
+        labels: [{ name: 'feature' }, { name: 'approved' }]
+      },
+      changes: {
+        title: {
+          from: 'feat: Make text larger'
+        }
+      }
+    }
+
+    done(expect(utils.extractLabelsFromPR(pullRequest)).toEqual(['fix', 'ui', 'approved']))
+  })
+
+  test('test resultant labels on PR 3', async (done) => {
+    const pullRequest = {
+      pull_request: {
+        title: 'feat: Handle mixed intent type',
+        labels: [{ name: 'fix' }, { name: 'approved' }]
+      },
+      changes: {
+        title: {
+          from: 'fix: Make text larger'
+        }
+      }
+    }
+
+    done(expect(utils.extractLabelsFromPR(pullRequest)).toEqual(['feature', 'approved']))
+  })
+
+  test('test resultant labels on PR edge case', async (done) => {
+    const pullRequest = {
+      pull_request: {
+        title: 'fix: Handle mixed intent type',
+        labels: [{ name: 'fix' }, { name: 'ui' }, { name: 'approved' }]
+      },
+      changes: {
+        title: {
+          from: 'fix: Make text larger'
+        }
+      }
+    }
+
+    done(expect(utils.extractLabelsFromPR(pullRequest)).toEqual(['fix', 'ui', 'approved']))
+  })
+
+  test('test resultant labels on PR created', async (done) => {
+    const pullRequest = {
+      pull_request: {
+        title: 'fix(ui): Handle mixed intent type',
+        labels: []
+      }
+    }
+
+    done(expect(utils.extractLabelsFromPR(pullRequest)).toEqual(['fix', 'ui']))
+  })
+
+  test('test resultant labels on PR no change', async (done) => {
+    const pullRequest = {
+      pull_request: {
+        title: 'fix(ui): Handle mixed intent type',
+        labels: [{ name: 'fix' }, { name: 'approved' }]
+      }
+    }
+
+    done(expect(utils.extractLabelsFromPR(pullRequest)).toEqual(['fix', 'ui', 'approved']))
+  })
+})

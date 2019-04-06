@@ -55,10 +55,10 @@ export = {
     labelList: string[] = defaultLabelList,
     labelMap: { [key:string]: string[] } = defaultLabelMap
   ): string[] {
-    const newLabels = this.extractLabels(pullRequest.pull_request.title)
+    const newLabels = this.extractLabels(pullRequest.pull_request.title, labelList, labelMap)
     const currentLabels = this.extractCurrentLabels(pullRequest.pull_request.labels)
     const oldTitle = pullRequest.changes && pullRequest.changes.title && pullRequest.changes.title.from
-    const oldLabels = this.extractLabels(oldTitle)
+    const oldLabels = this.extractLabels(oldTitle, labelList, labelMap)
 
     return Array.from(new Set(this.calculateResultantLabels(newLabels, currentLabels, oldLabels)))
   }

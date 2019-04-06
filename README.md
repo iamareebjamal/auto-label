@@ -1,4 +1,4 @@
-# pr-labler
+# auto-label
 
 > A GitHub App built with [Probot](https://github.com/probot/probot) that Labels PRs according to title prefix
 

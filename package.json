@@ -1,5 +1,5 @@
 {
-  "name": "pr-labler",
+  "name": "auto-label",
   "version": "1.0.0",
   "description": "Labels PRs according to title prefix",
   "author": "iamareebjamal <jamal.areeb@gmail.com>",

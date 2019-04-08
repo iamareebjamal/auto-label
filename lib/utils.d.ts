@@ -12,14 +12,8 @@ interface PullRequestPayLoad {
         };
     };
 }
-declare const _default: {
-    extractLabels(title?: string | undefined, labelList?: string[], labelMap?: {
-        [key: string]: string[];
-    }): string[];
-    extractCurrentLabels(currentLabels: Label[]): string[];
-    calculateResultantLabels(newLabels: string[], currentLabels: string[], oldLabels: string[]): string[];
-    extractLabelsFromPR(pullRequest: PullRequestPayLoad, labelList?: string[], labelMap?: {
-        [key: string]: string[];
-    }): string[];
-};
-export = _default;
+export declare function extractLabels(title?: string | undefined, config?: import("./config").Config): string[];
+export declare function extractCurrentLabels(currentLabels: Label[]): string[];
+export declare function calculateResultantLabels(newLabels: string[], currentLabels: string[], oldLabels: string[]): string[];
+export declare function extractLabelsFromPR(pullRequest: PullRequestPayLoad, config?: import("./config").Config): string[];
+export {};

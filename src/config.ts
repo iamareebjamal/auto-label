@@ -17,7 +17,8 @@ export const defaultConfig: Config = {
 interface ConfigEntry {
   config: Config,
   insertedAt: Date,
-  default: Boolean
+  default: Boolean,
+  error?: any
 }
 
 const configCache = new Map<string, ConfigEntry>()
@@ -28,13 +29,22 @@ export async function getConfig (context: Context): Promise<Config> {
   const currentTime = new Date()
   let configEntry = configCache.get(key)
   if (!configEntry || currentTime.getTime() - configEntry.insertedAt.getTime() > 600000) { // 10 minutes
-    const config = await context.config('auto_label.yml')
-
-    configCache.set(key, {
-      config: config || defaultConfig,
-      insertedAt: new Date(),
-      default: config == null
-    })
+    try {
+      const config = await context.config('auto_label.yml')
+      configCache.set(key, {
+        config: config || defaultConfig,
+        insertedAt: new Date(),
+        default: config == null
+      })
+    } catch (error) {
+      console.error(error)
+      configCache.set(key, {
+        config: defaultConfig,
+        insertedAt: new Date(),
+        default: true,
+        error
+      })
+    }
   }
 
   configEntry = configCache.get(key)

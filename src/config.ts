@@ -10,8 +10,7 @@ export interface Config {
 export const defaultConfig: Config = {
   labels: ['fix', 'chore'],
   labelMapping: {
-    'feat': ['feature'],
-    'fix(ui)': ['fix', 'ui']
+    'feat': ['feature']
   }
 }
 

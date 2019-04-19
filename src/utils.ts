@@ -53,3 +53,7 @@ export function extractLabelsFromPR (
 
   return Array.from(new Set(calculateResultantLabels(newLabels, currentLabels, oldLabels)))
 }
+
+export function shouldUpdateLabels (pullRequest: PullRequestPayLoad, newLabels: string[]) {
+  return newLabels.sort().toString() !== extractCurrentLabels(pullRequest.pull_request.labels).sort().toString()
+}

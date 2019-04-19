@@ -16,4 +16,5 @@ export declare function extractLabels(title?: string | undefined, config?: impor
 export declare function extractCurrentLabels(currentLabels: Label[]): string[];
 export declare function calculateResultantLabels(newLabels: string[], currentLabels: string[], oldLabels: string[]): string[];
 export declare function extractLabelsFromPR(pullRequest: PullRequestPayLoad, config?: import("./config").Config): string[];
+export declare function shouldUpdateLabels(pullRequest: PullRequestPayLoad, newLabels: string[]): boolean;
 export {};

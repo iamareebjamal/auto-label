@@ -1,14 +1,23 @@
 import * as utils from '../src/utils'
+import { Config } from '../src/config'
+
+const config: Config = {
+  labels: ['fix', 'chore'],
+  labelMapping: {
+    'feat': ['feature'],
+    'fix(ui)': ['fix', 'ui']
+  }
+}
 
 describe('Extract Utils Tests', () => {
   test('test label extraction from list', async (done) => {
-    done(expect(utils.extractLabels('chore: Update README')).toEqual(['chore']))
-    done(expect(utils.extractLabels('fix: Extract labels correctly')).toEqual(['fix']))
+    done(expect(utils.extractLabels('chore: Update README', config)).toEqual(['chore']))
+    done(expect(utils.extractLabels('fix: Extract labels correctly', config)).toEqual(['fix']))
   })
 
   test('test label extraction from map', async (done) => {
-    done(expect(utils.extractLabels('feat: Add links support')).toEqual(['feature']))
-    done(expect(utils.extractLabels('fix(ui): Render buttons correctly')).toEqual(['fix', 'ui']))
+    done(expect(utils.extractLabels('feat: Add links support', config)).toEqual(['feature']))
+    done(expect(utils.extractLabels('fix(ui): Render buttons correctly', config)).toEqual(['fix', 'ui']))
   })
 
   test('test current label extraction', async (done) => {
@@ -47,7 +56,7 @@ describe('Set Operation Tests', () => {
       }
     }
 
-    done(expect(utils.extractLabelsFromPR(pullRequest)).toEqual(['fix', 'approved']))
+    done(expect(utils.extractLabelsFromPR(pullRequest, config)).toEqual(['fix', 'approved']))
   })
 
   test('test resultant labels on PR 2', async (done) => {
@@ -63,7 +72,7 @@ describe('Set Operation Tests', () => {
       }
     }
 
-    done(expect(utils.extractLabelsFromPR(pullRequest)).toEqual(['fix', 'ui', 'approved']))
+    done(expect(utils.extractLabelsFromPR(pullRequest, config)).toEqual(['fix', 'ui', 'approved']))
   })
 
   test('test resultant labels on PR 3', async (done) => {
@@ -79,7 +88,7 @@ describe('Set Operation Tests', () => {
       }
     }
 
-    done(expect(utils.extractLabelsFromPR(pullRequest)).toEqual(['feature', 'approved']))
+    done(expect(utils.extractLabelsFromPR(pullRequest, config)).toEqual(['feature', 'approved']))
   })
 
   test('test resultant labels on PR edge case', async (done) => {
@@ -95,7 +104,7 @@ describe('Set Operation Tests', () => {
       }
     }
 
-    done(expect(utils.extractLabelsFromPR(pullRequest)).toEqual(['fix', 'ui', 'approved']))
+    done(expect(utils.extractLabelsFromPR(pullRequest, config)).toEqual(['fix', 'ui', 'approved']))
   })
 
   test('test resultant labels on PR created', async (done) => {
@@ -106,7 +115,7 @@ describe('Set Operation Tests', () => {
       }
     }
 
-    done(expect(utils.extractLabelsFromPR(pullRequest)).toEqual(['fix', 'ui']))
+    done(expect(utils.extractLabelsFromPR(pullRequest, config)).toEqual(['fix', 'ui']))
   })
 
   test('test resultant labels on PR no change', async (done) => {
@@ -117,6 +126,20 @@ describe('Set Operation Tests', () => {
       }
     }
 
-    done(expect(utils.extractLabelsFromPR(pullRequest)).toEqual(['fix', 'ui', 'approved']))
+    const expected = ['fix', 'ui', 'approved']
+    expect(utils.extractLabelsFromPR(pullRequest, config)).toEqual(expected)
+    done(expect(utils.shouldUpdateLabels(pullRequest, expected)).toBe(true))
+  })
+
+  test('test no label extraction', async (done) => {
+    const pullRequest = {
+      pull_request: {
+        title: 'build(deps): Handle mixed intent type',
+        labels: []
+      }
+    }
+
+    expect(utils.extractLabelsFromPR(pullRequest, config)).toEqual([])
+    done(expect(utils.shouldUpdateLabels(pullRequest, [])).toBe(false))
   })
 })

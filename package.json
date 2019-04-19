@@ -1,6 +1,6 @@
 {
   "name": "auto-label",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Labels PRs according to title prefix",
   "author": "iamareebjamal <jamal.areeb@gmail.com>",
   "license": "ISC",

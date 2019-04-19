@@ -1,5 +1,5 @@
 import { Application, Context } from 'probot' // eslint-disable-line no-unused-vars
-import { extractLabelsFromPR } from './utils'
+import { extractLabelsFromPR, shouldUpdateLabels } from './utils'
 import { getConfig } from './config'
 
 export = (app: Application) => {
@@ -11,8 +11,13 @@ export = (app: Application) => {
       return
     }
 
+    const newLabels = extractLabelsFromPR(context.payload, config)
+
+    if (!shouldUpdateLabels(context.payload.pull_request, newLabels))
+      return
+
     await context.github.issues.replaceLabels(context.issue({
-      labels: extractLabelsFromPR(context.payload, config)
+      labels: newLabels
     }))
   })
 }

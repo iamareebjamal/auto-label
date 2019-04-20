@@ -13,7 +13,7 @@ export = (app: Application) => {
 
     const newLabels = extractLabelsFromPR(context.payload, config)
 
-    if (!shouldUpdateLabels(context.payload.pull_request, newLabels))
+    if (!shouldUpdateLabels(context.payload, newLabels))
       return
 
     await context.github.issues.replaceLabels(context.issue({
